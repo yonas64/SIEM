@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Simple SIEM Console</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Spline+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="bg-orbit"></div>
+    <div class="bg-grid"></div>
+
+    <main class="page">
+      <header class="hero">
+        <div class="badge">Simple SIEM</div>
+        <h1>Security Signal Console</h1>
+        <p>
+          Lightweight view into alerts and quick log ingestion. Built for fast verification while
+          the backend matures.
+        </p>
+        <div class="hero-actions">
+          <button id="refresh" class="btn primary">Refresh Alerts</button>
+          <span id="status" class="status">Idle</span>
+        </div>
+      </header>
+
+      <section class="grid">
+        <article class="panel">
+          <div class="panel-header">
+            <h2>Alerts</h2>
+            <span class="muted">Newest first</span>
+          </div>
+          <div id="alerts" class="alert-list">
+            <div class="empty">No alerts yet.</div>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-header">
+            <h2>Send Test Log</h2>
+            <span class="muted">POST /api/logs</span>
+          </div>
+          <form id="logForm" class="form">
+            <label>
+              Event
+              <input name="event" placeholder="login_failed" value="login_failed" required />
+            </label>
+            <label>
+              IP
+              <input name="ip" placeholder="1.2.3.4" value="1.2.3.4" required />
+            </label>
+            <label>
+              Severity
+              <select name="severity">
+                <option value="low">low</option>
+                <option value="medium">medium</option>
+                <option value="high" selected>high</option>
+                <option value="critical">critical</option>
+              </select>
+            </label>
+            <label>
+              Source
+              <input name="source" placeholder="frontend-test" value="frontend-test" />
+            </label>
+            <label>
+              User
+              <input name="user" placeholder="alice" value="alice" />
+            </label>
+            <label>
+              Timestamp
+              <input name="timestamp" placeholder="auto" />
+            </label>
+            <label>
+              Raw Payload (JSON)
+              <textarea
+                name="raw"
+                placeholder='{"device":"web","region":"us-east"}'
+                rows="4"
+              ></textarea>
+            </label>
+            <button class="btn ghost" type="submit">Send Log</button>
+            <p class="hint">
+              Tip: Send 5 failed logins from the same IP within 5 minutes to trigger a rule.
+            </p>
+          </form>
+        </article>
+      </section>
+
+      <section class="panel panel-wide">
+        <div class="panel-header">
+          <h2>Recent Activity</h2>
+          <span class="muted">Live console output</span>
+        </div>
+        <div id="activity" class="activity">
+          <div class="activity-item">Console ready.</div>
+        </div>
+      </section>
+
+      <section class="panel panel-wide">
+        <div class="panel-header">
+          <h2>Recent Logs</h2>
+          <span class="muted">Newest first</span>
+        </div>
+        <div id="logs" class="log-list">
+          <div class="empty">No logs yet.</div>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
