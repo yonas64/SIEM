@@ -17,6 +17,8 @@ function run(name: string, fn: () => void): void {
 run('Nginx parser parses combined access log line', () => {
   const parser = new NginxLogParser();
   const dto: CreateLogDto = {
+    latitude: 37.7749,
+    longitude: -122.4194,
     message:
       '127.0.0.1 - - [10/Oct/2000:13:55:36 -0700] "GET /login HTTP/1.1" 401 2326 "https://example.com" "Mozilla/5.0"',
   };
@@ -28,6 +30,8 @@ run('Nginx parser parses combined access log line', () => {
   assert.equal(logs[0].event, 'nginx_access_4xx');
   assert.equal(logs[0].severity, 'medium');
   assert.equal(logs[0].ip, '127.0.0.1');
+  assert.equal(logs[0].latitude, 37.7749);
+  assert.equal(logs[0].longitude, -122.4194);
 });
 
 run('Nginx parser maps 5xx status code to high severity', () => {
@@ -46,6 +50,8 @@ run('Nginx parser maps 5xx status code to high severity', () => {
 run('Syslog parser parses RFC5424 line', () => {
   const parser = new SyslogLogParser();
   const dto: CreateLogDto = {
+    lat: '40.7128',
+    lon: '-74.0060',
     message:
       '<34>1 2026-02-16T14:48:00Z host app 123 ID47 [exampleSDID@32473 iut="3"] Login failed for user admin',
   };
@@ -56,6 +62,8 @@ run('Syslog parser parses RFC5424 line', () => {
   assert.equal(logs[0].source, 'syslog');
   assert.equal(logs[0].event, 'syslog_app');
   assert.equal(logs[0].severity, 'high');
+  assert.equal(logs[0].latitude, 40.7128);
+  assert.equal(logs[0].longitude, -74.006);
 });
 
 run('Syslog parser parses RFC3164 line and extracts host IP', () => {

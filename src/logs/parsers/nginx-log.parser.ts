@@ -41,6 +41,7 @@ export class NginxLogParser implements LogParser {
     const source = this.readString(dto.source) ?? 'nginx';
     const event = `nginx_access_${Math.floor(statusCode / 100)}xx`;
     const user = this.readString(dto.user);
+    const geo = this.extractGeoFromDto(dto);
 
     const raw: Record<string, unknown> = {
       ...dto,
@@ -55,7 +56,7 @@ export class NginxLogParser implements LogParser {
       },
     };
 
-    return [{ timestamp, source, severity, event, user, ip, raw }];
+    return [{ timestamp, source, severity, event, user, ip, latitude: geo?.latitude, longitude: geo?.longitude, raw }];
   }
 
   private mapSeverity(statusCode: number): Severity {
@@ -97,5 +98,59 @@ export class NginxLogParser implements LogParser {
     const trimmed = value.trim();
     return trimmed === '' ? undefined : trimmed;
   }
-}
 
+  private readNumber(value: unknown): number | undefined {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value;
+    }
+
+    if (typeof value === 'string') {
+      const parsed = Number(value.trim());
+      if (Number.isFinite(parsed)) {
+        return parsed;
+      }
+    }
+
+    return undefined;
+  }
+
+  private readRecord(value: unknown): Record<string, unknown> | undefined {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      return undefined;
+    }
+
+    return value as Record<string, unknown>;
+  }
+
+  private extractGeoFromDto(dto: CreateLogDto): { latitude: number; longitude: number } | undefined {
+    const dtoAny = dto as Record<string, unknown>;
+    const geo = this.readRecord(dtoAny.geo);
+    const location = this.readRecord(dtoAny.location);
+
+    const latitude =
+      this.readNumber(dtoAny.latitude) ??
+      this.readNumber(dtoAny.lat) ??
+      this.readNumber(geo?.latitude) ??
+      this.readNumber(geo?.lat) ??
+      this.readNumber(location?.latitude) ??
+      this.readNumber(location?.lat);
+
+    const longitude =
+      this.readNumber(dtoAny.longitude) ??
+      this.readNumber(dtoAny.lon) ??
+      this.readNumber(geo?.longitude) ??
+      this.readNumber(geo?.lon) ??
+      this.readNumber(location?.longitude) ??
+      this.readNumber(location?.lon);
+
+    if (latitude === undefined || longitude === undefined) {
+      return undefined;
+    }
+
+    if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+      return undefined;
+    }
+
+    return { latitude, longitude };
+  }
+}

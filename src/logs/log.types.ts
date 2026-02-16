@@ -7,5 +7,7 @@ export interface NormalizedLog {
   event: string;
   user?: string;
   ip?: string;
+  latitude?: number;
+  longitude?: number;
   raw?: Record<string, unknown>;
 }

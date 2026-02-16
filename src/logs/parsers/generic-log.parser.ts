@@ -38,9 +38,10 @@ export class GenericLogParser implements LogParser {
     const event = this.normalizeEvent(this.readString(dto.event)) ?? 'unknown';
     const user = typeof dto.user === 'string' && dto.user.trim() !== '' ? dto.user : undefined;
     const ip = typeof dto.ip === 'string' && dto.ip.trim() !== '' ? dto.ip : undefined;
+    const geo = this.extractGeoFromRecord(dto as Record<string, unknown>);
 
     const raw: Record<string, unknown> = { ...dto };
-    return { timestamp, source, severity, event, user, ip, raw };
+    return { timestamp, source, severity, event, user, ip, latitude: geo?.latitude, longitude: geo?.longitude, raw };
   }
 
   private normalizeFromRawEvent(dto: CreateLogDto, rawEvent: Record<string, unknown>): NormalizedLog {
@@ -52,6 +53,7 @@ export class GenericLogParser implements LogParser {
     const contextEmail = this.readString(context?.email);
     const contextUser = this.readString(context?.user);
     const contextIp = this.readString(context?.clientIp);
+    const geo = this.extractGeoFromRecord(rawEvent) ?? this.extractGeoFromRecord(dto as Record<string, unknown>);
 
     const timestamp = eventTimestamp ? new Date(eventTimestamp) : dto.timestamp ? new Date(dto.timestamp) : new Date();
     const source = typeof dto.source === 'string' && dto.source.trim() !== '' ? dto.source : 'unknown';
@@ -62,7 +64,7 @@ export class GenericLogParser implements LogParser {
     const ip = typeof dto.ip === 'string' && dto.ip.trim() !== '' ? dto.ip : contextIp || undefined;
 
     const raw: Record<string, unknown> = { ...dto, rawEvent };
-    return { timestamp, source, severity, event, user, ip, raw };
+    return { timestamp, source, severity, event, user, ip, latitude: geo?.latitude, longitude: geo?.longitude, raw };
   }
 
   private extractRawEvents(dto: CreateLogDto): Record<string, unknown>[] {
@@ -92,5 +94,56 @@ export class GenericLogParser implements LogParser {
     const trimmed = value.trim();
     return trimmed === '' ? undefined : trimmed;
   }
-}
 
+  private readNumber(value: unknown): number | undefined {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value;
+    }
+
+    if (typeof value === 'string') {
+      const parsed = Number(value.trim());
+      if (Number.isFinite(parsed)) {
+        return parsed;
+      }
+    }
+
+    return undefined;
+  }
+
+  private extractGeoFromRecord(record: Record<string, unknown>): { latitude: number; longitude: number } | undefined {
+    const geo = this.readRecord(record.geo);
+    const location = this.readRecord(record.location);
+    const parsed = this.readRecord(record.parsed);
+    const parsedGeo = this.readRecord(parsed?.geo);
+
+    const latitude =
+      this.readNumber(record.latitude) ??
+      this.readNumber(record.lat) ??
+      this.readNumber(geo?.latitude) ??
+      this.readNumber(geo?.lat) ??
+      this.readNumber(location?.latitude) ??
+      this.readNumber(location?.lat) ??
+      this.readNumber(parsedGeo?.latitude) ??
+      this.readNumber(parsedGeo?.lat);
+
+    const longitude =
+      this.readNumber(record.longitude) ??
+      this.readNumber(record.lon) ??
+      this.readNumber(geo?.longitude) ??
+      this.readNumber(geo?.lon) ??
+      this.readNumber(location?.longitude) ??
+      this.readNumber(location?.lon) ??
+      this.readNumber(parsedGeo?.longitude) ??
+      this.readNumber(parsedGeo?.lon);
+
+    if (latitude === undefined || longitude === undefined) {
+      return undefined;
+    }
+
+    if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+      return undefined;
+    }
+
+    return { latitude, longitude };
+  }
+}
