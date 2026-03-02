@@ -29,4 +29,10 @@ export class LogsService {
   async list(): Promise<Log[]> {
     return this.logModel.find().sort({ timestamp: -1 }).limit(100).exec();
   }
+
+  // Clear all logs from the database
+  async clearAll(): Promise<{ deletedCount: number }> {
+    const result = await this.logModel.deleteMany({});
+    return { deletedCount: result.deletedCount ?? 0 };
+  }
 }

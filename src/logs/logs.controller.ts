@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post } from '@nestjs/common';
 import { LogsService } from './logs.service';
 import { CreateLogDto } from './log.dto';
 
@@ -16,5 +16,11 @@ export class LogsController {
   @Get()
   async list() {
     return this.logsService.list();
+  }
+
+  // DELETE /api/logs
+  @Delete()
+  async clear() {
+    return this.logsService.clearAll();
   }
 }
