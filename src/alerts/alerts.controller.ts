@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Delete, Get } from '@nestjs/common';
 import { AlertsService } from './alerts.service';
 
 @Controller('alerts')
@@ -9,5 +9,11 @@ export class AlertsController {
   @Get()
   async list() {
     return this.alertsService.list();
+  }
+
+  // DELETE /api/alerts
+  @Delete()
+  async clear() {
+    return this.alertsService.clearAll();
   }
 }

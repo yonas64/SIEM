@@ -14,4 +14,10 @@ export class AlertsService {
   async list(): Promise<Alert[]> {
     return this.alertModel.find().sort({ triggeredAt: -1 }).exec();
   }
+
+  // Clear all alerts from the database
+  async clearAll(): Promise<{ deletedCount: number }> {
+    const result = await this.alertModel.deleteMany({});
+    return { deletedCount: result.deletedCount ?? 0 };
+  }
 }
