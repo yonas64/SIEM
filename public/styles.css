@@ -277,6 +277,16 @@ textarea:focus {
   border: 1px solid rgba(0, 0, 0, 0.12);
 }
 
+.btn.danger {
+  background: #a91c2f;
+  color: #fff;
+}
+
+.btn.danger:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(169, 28, 47, 0.25);
+}
+
 .hint {
   color: var(--muted);
   font-size: 12px;

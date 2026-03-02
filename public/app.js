@@ -3,6 +3,8 @@ const alertsEl = document.getElementById("alerts");
 const activityEl = document.getElementById("activity");
 const logsEl = document.getElementById("logs");
 const refreshBtn = document.getElementById("refresh");
+const clearLogsBtn = document.getElementById("clearLogs");
+const clearAlertsBtn = document.getElementById("clearAlerts");
 const form = document.getElementById("logForm");
 
 const isLocalDevPort = ["5173", "3000", "8080"].includes(window.location.port);
@@ -141,6 +143,42 @@ const loadLogs = async () => {
   }
 };
 
+const clearLogs = async () => {
+  const shouldClear = window.confirm("Clear all logs from the database?");
+  if (!shouldClear) return;
+
+  setStatus("Clearing logs...");
+  try {
+    const res = await fetch(`${API_BASE}/logs`, { method: "DELETE" });
+    if (!res.ok) throw new Error(`Clear logs failed (${res.status})`);
+    const data = await res.json();
+    addActivity(`Cleared ${data.deletedCount ?? 0} logs`);
+    await loadLogs();
+  } catch (err) {
+    addActivity(err.message, "error");
+  } finally {
+    setStatus("Idle");
+  }
+};
+
+const clearAlerts = async () => {
+  const shouldClear = window.confirm("Clear all alerts from the database?");
+  if (!shouldClear) return;
+
+  setStatus("Clearing alerts...");
+  try {
+    const res = await fetch(`${API_BASE}/alerts`, { method: "DELETE" });
+    if (!res.ok) throw new Error(`Clear alerts failed (${res.status})`);
+    const data = await res.json();
+    addActivity(`Cleared ${data.deletedCount ?? 0} alerts`);
+    await loadAlerts();
+  } catch (err) {
+    addActivity(err.message, "error");
+  } finally {
+    setStatus("Idle");
+  }
+};
+
 const buildPayload = (formData) => {
   const payload = {};
   for (const [key, value] of formData.entries()) {
@@ -187,6 +225,9 @@ refreshBtn.addEventListener("click", async () => {
   await loadAlerts();
   await loadLogs();
 });
+
+clearLogsBtn.addEventListener("click", clearLogs);
+clearAlertsBtn.addEventListener("click", clearAlerts);
 
 loadAlerts();
 loadLogs();
